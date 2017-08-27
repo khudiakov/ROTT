@@ -61,7 +61,10 @@ class Description extends Component {
         }
 
         const content = (this.state.edit?
-                         <DescriptionEditor title={title} body={body} onSave={this.props.onSave} />:
+                         <DescriptionEditor title={title} body={body} onSave={(title, body)=>{
+                             this.props.onSave(title, body);
+                             this.setState({edit: false});
+                            }} />:
                          <DescriptionRead title={title} body={body} />
                         )
 
