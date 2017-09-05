@@ -8,7 +8,6 @@ import moment from 'moment';
 import EditDescriptionModal from "./EditDescriptionModal"
 import { deleteActivity, setActivityDescription } from "../actions/projects";
 import { Duration } from "./Timer";
-import '../styles/Diary.sass';
 
 const EmptyDivWithCenteredText = styled.div`
     color: rgba(0,0,0,0.7);
@@ -21,7 +20,6 @@ const StyledActivity = styled.div`
     border: 1px solid purple;
     border-radius: 3px;
     margin: 3px;
-    padding
 `;
 
 class Activity extends Component {
@@ -34,30 +32,38 @@ class Activity extends Component {
     }
 
     render() {
-        const maxHeight = (this.state.open?'none':'300px');
+        const maxHeight = (this.state.open ? 'none' : '300px');
 
         return (
-            <StyledActivity onClick={()=>{this.setState({open: !this.state.open})}}>
-                <div style={{display: 'flex', backgroundColor: 'purple', padding: '5px', color: 'white', minWidth: '760px'}}>
-                    <h3 style={{flex: 1, margin: 0, fontSize: '2em'}}>{ <Duration duration={new Date(this.props.activity.end - this.props.activity.start)} /> }</h3>
-                    <div style={{flex: 4, textAlign: 'center', flex: 1}}>
-                        <p style={{margin: 0, fontSize: '1em'}}><b>From</b> {moment(this.props.activity.start).format("DD.MM.YYYY, HH:mm:ss")}</p>
-                        <p style={{margin: 0, fontSize: '1em'}}><b>To</b> {moment(this.props.activity.end).format("DD.MM.YYYY, HH:mm:ss")}</p>
+            <StyledActivity onClick={() => { this.setState({ open: !this.state.open }) }}>
+                <div style={{ display: 'flex', backgroundColor: 'purple', padding: '5px', color: 'white', minWidth: '760px' }}>
+                    <h3 style={{ flex: 1, margin: 0, fontSize: '2em' }}>{<Duration duration={new Date(this.props.activity.end - this.props.activity.start)} />}</h3>
+                    <div style={{ flex: 4, textAlign: 'center', flex: 1 }}>
+                        <p style={{ margin: 0, fontSize: '1em' }}><b>From</b> {moment(this.props.activity.start).format("DD.MM.YYYY, HH:mm:ss")}</p>
+                        <p style={{ margin: 0, fontSize: '1em' }}><b>To</b> {moment(this.props.activity.end).format("DD.MM.YYYY, HH:mm:ss")}</p>
                     </div>
-                    <div style={{flex: 1, display: 'flex', justifyContent: 'flex-end'}}>
-                        <EditDescriptionModal body={this.props.activity.body} onSave={(body)=>{this.props.onSave(body)}} />
-                        <IconButton iconStyle={{color: 'white'}} className="icon__button" iconClassName="material-icons" touch={true} onTouchTap={this.props.onDelete} >
+                    <div style={{ flex: 1, display: 'flex', justifyContent: 'flex-end' }}>
+                        <EditDescriptionModal body={this.props.activity.body} onSave={(body) => { this.props.onSave(body) }} />
+                        <IconButton iconStyle={{ color: 'white' }} className="icon__button" iconClassName="material-icons" touch={true} onTouchTap={this.props.onDelete} >
                             delete_forever
                         </IconButton>
                     </div>
                 </div>
-                <div style={{maxHeight: maxHeight, overflowY: 'hidden', padding: (this.props.activity.body?'5px':'0px')}}>
-                    <ReactMarkdown  source={this.props.activity.body} />
+                <div style={{ maxHeight: maxHeight, overflowY: 'hidden', padding: (this.props.activity.body ? '5px' : '0px') }}>
+                    <ReactMarkdown source={this.props.activity.body} />
                 </div>
             </StyledActivity>
         )
     }
 }
+
+const DiaryStyle = styled.div`
+    flex: 1;
+    overflow-y: scroll;
+
+    &::-webkit-scrollbar
+        display: none;
+`;
 
 class Diary extends Component {
     render() {
@@ -67,24 +73,24 @@ class Diary extends Component {
             const activities = Object.entries(this.props.projects[this.props.projectId].activities).filter(entry => entry[1].end);
             if (activities.length > 0) {
                 content = activities
-                            .reverse()
-                            .map(entry => (
-                                <Activity 
-                                    key={entry[0]} 
-                                    activity={entry[1]} 
-                                    onDelete={()=>{this.props.delete(this.props.projectId, entry[0])}} 
-                                    onSave={(body)=>{this.props.change(this.props.projectId, entry[0], body)}} 
-                                />
-                            ))
+                    .reverse()
+                    .map(entry => (
+                        <Activity
+                            key={entry[0]}
+                            activity={entry[1]}
+                            onDelete={() => { this.props.delete(this.props.projectId, entry[0]) }}
+                            onSave={(body) => { this.props.change(this.props.projectId, entry[0], body) }}
+                        />
+                    ))
             } else {
                 content = (<EmptyDivWithCenteredText>No activity yet</EmptyDivWithCenteredText>)
             }
         }
 
         return (
-            <div className="Diary">
+            <DiaryStyle>
                 {content}
-            </div>            
+            </DiaryStyle>
         );
     }
 }

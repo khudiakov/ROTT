@@ -16,11 +16,11 @@ class ButtonWithModal extends Component {
         };
 
         this.handleOpen = () => {
-            this.setState({open: true, text: ""});
+            this.setState({ open: true, text: "" });
         };
 
         this.handleClose = () => {
-            this.setState({open: false, text: ""});
+            this.setState({ open: false, text: "" });
         };
     }
 
@@ -34,16 +34,16 @@ class ButtonWithModal extends Component {
             <FlatButton
                 label="Create"
                 primary={true}
-                onTouchTap={()=>{ 
-                    this.handleClose(); 
-                    this.props.onClick(this.state.text); 
+                onTouchTap={() => {
+                    this.handleClose();
+                    this.props.onClick(this.state.text);
                 }}
             />,
         ];
 
         return (
             <div>
-                <FlatButton label="Create Project" onTouchTap={this.handleOpen} fullWidth={true} secondary={true} />
+                <FlatButton style={{ flex: 1 }} label="Create Project" onTouchTap={this.handleOpen} fullWidth={true} secondary={true} />
                 <Dialog
                     title="Create Project"
                     actions={actions}
@@ -54,7 +54,7 @@ class ButtonWithModal extends Component {
                     <TextField
                         fullWidth={true}
                         hintText="Title"
-                        onChange = {(_, newValue) => this.setState({text: newValue})}
+                        onChange={(_, newValue) => this.setState({ text: newValue })}
                     />
                 </Dialog>
             </div>
