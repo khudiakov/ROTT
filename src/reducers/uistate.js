@@ -1,14 +1,20 @@
-import {SET_ACTIVE_PROJECT, SET_ACTIVE_ACTIVITY} from "../actions/uistate";
+import {SET_ACTIVE_PROJECT} from "../actions/uistate";
+import {DELETE_PROJECT} from "../actions/projects";
 
 const uistate = (state={projectId: undefined, activityId: undefined}, action) => {
     switch (action.type) {
+        case DELETE_PROJECT:
+            if (state.projectId === action.projectId) {
+                return {
+                    projectId: null
+                }
+            }
+            return state;
         case SET_ACTIVE_PROJECT:
-            state.projectId = action.projectId;
-            state.activityId = undefined;
-            return Object.assign({}, state);
-        case SET_ACTIVE_ACTIVITY:
-            state.activityId = action.activityId;    
-            return Object.assign({}, state);
+            return {
+                projectId: action.projectId,
+                activityId: null
+            }
         default:
             return state;
     }

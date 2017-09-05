@@ -2,96 +2,67 @@ import React, {Component} from 'react';
 import {connect} from 'react-redux';
 import IconButton from 'material-ui/IconButton';
 
-import { startActivity, stopActivity } from '../actions/projects';
-import { setActiveProject } from '../actions/uistate';
-import "../styles/Project.sass";
-
-function formatDate(date) {
-    let result = ""
-
-    let seconds = Math.round(date.getTime()/1000);
-    
-    const hours = Math.floor(seconds/3600);
-    if (hours > 0) {
-        result += hours+" h. ";
-    }
-    seconds %= 3600;
-
-    const minutes = Math.floor(seconds/60);
-    if (minutes > 0) {
-        result += minutes+" min. "
-    }
-    seconds %= 60;
-
-    if (seconds >= 0) {
-        result += seconds+" sec."
-    }
-    
-    if (date.getTime() === 0) {
-        result = "No Activities"
-    }
-    return result;
-}
+import { startActivity, stopActivity, deleteProject } from '../actions/projects';
+import StyledProjectItem from "../components/Project";
+import { setActiveProject, setActiveActivity } from '../actions/uistate';
+import { Timer, Duration } from './Timer';
 
 class Project extends Component {
-    constructor(props) {
-        super(props);
-        
-        const duration = this.props.project.activities
-            .filter((activity) => activity.end != null)
-            .reduce((sum, activity) => {
-                return new Date(sum.getTime() + (activity.end - activity.start))
-            }, new Date(0))
-
-        this.state = {
-            duration
-        }
-    }
-
-    componentWillMount() {
-        const lastActivity = this.props.project.activities.peek();
-
-        if (lastActivity !== undefined && lastActivity.end === null) {
-            this.setState({duration: new Date(new Date - lastActivity.start)});
-            this.interval = setInterval(() => {this.setState({duration: new Date(new Date() - lastActivity.start)})}, 1000);
-        }
-    }
-
-    componentWillUnmount() {
-        if (this.interval != null) {
-            clearInterval(this.interval);
-        }
-    }
-
     render() {
-        let button = null;
-
-        const lastActivity = this.props.project.activities.peek();
+        const activities = Object.values(this.props.project.activities);
+        const lastActivity = activities[activities.length - 1];
+        const active = lastActivity !== undefined && lastActivity.end === null;
 
         let icon;
         let onTouchTap;
-        if (lastActivity !== undefined && lastActivity.end === null) {
+        let durationElement;
+        if (active) {
             icon = "stop"
-            onTouchTap = () => {this.props.stop(this.props.project.id)}
+            durationElement = <Timer start={lastActivity.start} />
+            onTouchTap = () => {
+                this.props.stop(this.props.projectId); 
+            }
         } else {
             icon = "play_arrow"
-            onTouchTap = () => {this.props.start(this.props.project.id)}
+            const duration = activities
+                .reduce((sum, activity) => {
+                    return new Date(sum.getTime() + ((activity.end || new Date().getTime()) - activity.start))
+                }, new Date(0))
+
+
+            durationElement = <Duration duration={duration} />
+            onTouchTap = () => { 
+                this.props.start(this.props.projectId); 
+            }
         }
 
-
         return (
-            <button className="Project" onClick={() => {this.props.openProject(this.props.project.id)}}>
+            <StyledProjectItem active={active} selected={this.props.selected} onClick={() => {this.props.openProject(this.props.projectId)}}>
+                <IconButton iconClassName="material-icons" 
+                    style={{position: 'absolute', top: '-12px', right: '-12px'}} 
+                    iconStyle={{fontSize: '16px', color: 'black !impoertant'}}
+                    touch={true} onTouchTap={()=>{this.props.deleteProject(this.props.projectId)}}                
+                >
+                    clear
+                </IconButton>
                 <h2>{this.props.project.title}</h2>
-                <h3>{formatDate(this.state.duration)}</h3>
-                <IconButton className="icon__button" iconClassName="material-icons" touch={true} onTouchTap={onTouchTap} >
+                {durationElement}
+                <IconButton iconClassName="material-icons" touch={true} onTouchTap={onTouchTap} >
                     {icon}
                 </IconButton>
-            </button>
+            </StyledProjectItem>
         )
     }
 }
 
-const mapDispatchToProps = dispatch => ({
+const mapStateToProps = (state, ownProps) => {
+    return {
+        project: state.projects[ownProps.projectId],
+        selected: state.uistate.projectId === ownProps.projectId
+    }
+};
+
+const mapDispatchToProps = (dispatch, ownProps) => ({
     start: (id) => {
         dispatch(startActivity(id))
     },
@@ -100,9 +71,12 @@ const mapDispatchToProps = dispatch => ({
     },
     openProject: (id) => {
         dispatch(setActiveProject(id))
+    },
+    deleteProject: (id) => {
+        dispatch(deleteProject(id))
     }
 })
 
-const ProjectController = connect(null, mapDispatchToProps)(Project);
+const ProjectController = connect(mapStateToProps, mapDispatchToProps)(Project);
 
 export default ProjectController;

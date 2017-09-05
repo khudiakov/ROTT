@@ -1,9 +1,14 @@
 .Projects
     display: flex
     flex-direction: column
-    flex: 2
+    width: 340px
+    min-width: 340px;
 
     .projects__list
         flex: 13
+        overflow-y: scroll
+
+        &::-webkit-scrollbar
+            display: none;
     .add-project__button
         flex: 1

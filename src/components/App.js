@@ -5,8 +5,8 @@ import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
 import injectTapEventPlugin from 'react-tap-event-plugin';
 
 import ProjectsList from '../containers/Projects';
-import ContentContainer from '../containers/ContentContainer';
-import projectsReducer from '../reducers/projects';
+import DiaryContainer from '../containers/DiaryContainer';
+import projectsReducer, {localStorageWrapper} from '../reducers/projects';
 import uistateReducer from '../reducers/uistate';
 
 import '../styles/App.sass';
@@ -18,7 +18,7 @@ injectTapEventPlugin();
 
 let store = createStore(
   combineReducers({
-    projects: projectsReducer, 
+    projects: localStorageWrapper(projectsReducer), 
     uistate: uistateReducer
   })
 )
@@ -30,7 +30,7 @@ class App extends Component {
         <MuiThemeProvider>
           <div className="App">
             <ProjectsList />
-            <ContentContainer />
+            <DiaryContainer />
           </div>
         </MuiThemeProvider>
       </Provider>

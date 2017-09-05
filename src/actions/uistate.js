@@ -5,7 +5,8 @@ export const setActiveProject = projectId => ({
 })
 
 export const SET_ACTIVE_ACTIVITY = "SET_ACTIVE_ACTIVITY";
-export const setActiveActivity = activityId => ({
+export const setActiveActivity = (projectId, activityId) => ({
     type: SET_ACTIVE_ACTIVITY,
+    projectId,
     activityId
 })

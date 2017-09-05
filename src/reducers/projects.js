@@ -1,66 +1,126 @@
-import Immutable from 'immutable';
-
 import {ADD_PROJECT, START_ACTIVITY, STOP_ACTIVITY,
-        SET_ACTIVITY_DESCRIPTION } from  '../actions/projects'
+        SET_ACTIVITY_DESCRIPTION, DELETE_ACTIVITY,
+        DELETE_PROJECT } from  '../actions/projects'
 
 
-const projects = (state=[], action) => {
-  console.log(state)
+export const localStorageWrapper = function(reducer) {
+  return (state=JSON.parse(localStorage.getItem('state') || "{}"), action) => {
+    const oldState = state;
+    const newState = reducer(state, action);
+    if (newState != oldState) {
+      localStorage.setItem('state', JSON.stringify(newState));
+    }
+
+    return newState;
+  }
+}
+
+const projects = (state={}, action) => {
+  let activities;
+
   switch (action.type) {
     case ADD_PROJECT:
-      return [
+      return {
         ...state,
-        {
-          id: action.projectId,
-          title: action.title,
-          activities: Immutable.Stack()
-        }
-      ]
+        [action.projectId]:
+          {
+            title: action.title,
+            activities: {}
+          }
+      }
+
+    case DELETE_PROJECT:
+      delete state[action.projectId]
+      return {
+        ...state
+      }
+
     case START_ACTIVITY:
-      return state.map(project => {
-        if (
-          project.id === action.projectId && 
-          (project.activities.peek() === undefined || project.activities.peek().end !== null)
-        ) {
-          const activity = project.activities.peek()
-          if (project.activities.peek() !== undefined && new Date() - activity.end < 60 * 1000)  {
-            project.activities = project.activities.pop()
-            activity.end = null
-            project.activities = project.activities.push(activity)
-          } else {
-            project.activities = project.activities.push({
-              id: action.activityId,
-              title: "",
+      activities = state[action.projectId].activities;
+
+      if (Object.values(activities).some(activity => activity.end === null)) {
+        return state;
+      }
+
+      return {
+        ...state,
+        [action.projectId]: {
+          ...state[action.projectId],
+          activities: {
+            ...activities,
+            [action.activityId]: {
               body: "",
-              start: new Date(),
+              start: new Date().getTime(),
               end: null
-            })
+            }
           }
         }
-        return project
-      })
+      }
+
     case STOP_ACTIVITY:
-      return state.map(project => {
-        if (project.id === action.projectId &&
-            project.activities.peek() !== undefined && project.activities.peek().end === null) {
-          const activity = project.activities.peek()
-          project.activities = project.activities.pop()
-          activity.end = new Date();
-          project.activities = project.activities.push(activity);
-        }
-        return project
-      })
-    // TODO: VERY BAD OPTIMIZATION - FIX
-    case SET_ACTIVITY_DESCRIPTION:
-      return state.map(project => {
-        project.activities = project.activities.map(activity => {
-          if (activity.id === action.activityId) {
-            return Object.assign({}, activity, {title: action.title, body: action.body});
+      activities = state[action.projectId].activities;
+      const keys = Object.keys(activities);
+      const lastActivityId = keys[keys.length - 1];
+
+      if (lastActivityId === undefined || activities[lastActivityId].end !== null) {
+        return state;
+      }
+
+      if (new Date() - state[action.projectId].activities[lastActivityId].start < 1000) {
+        delete state[action.projectId].activities[lastActivityId]
+        return {
+          ...state,
+          [action.projectId]: {
+            ...state[action.projectId],
+            activities: {
+              ...state[action.projectId].activities
+            }
           }
-          return activity;
-        })
-        return project;
-      });
+        }
+      }
+
+      return {
+        ...state,
+        [action.projectId]: {
+          ...state[action.projectId],
+          activities: {
+            ...activities,
+            [lastActivityId]: {
+              ...activities[lastActivityId],
+              end: new Date().getTime()
+            }
+          }
+        }
+      }
+
+    case SET_ACTIVITY_DESCRIPTION:
+      activities = state[action.projectId].activities;
+      return {
+        ...state,
+        [action.projectId]: {
+          ...state[action.projectId],
+          activities: {
+            ...activities,
+            [action.activityId]: {
+              ...activities[action.activityId],
+              body: action.body
+            }
+          }
+        }
+      }
+      
+    case DELETE_ACTIVITY:
+      delete state[action.projectId].activities[action.activityId]
+      return {
+        ...state,
+        [action.projectId]: {
+          ...state[action.projectId],
+          activities: {
+            ...state[action.projectId].activities
+          }
+        }
+      }
+
     default:
       return state
   }
