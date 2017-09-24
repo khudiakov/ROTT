@@ -1,23 +1,28 @@
-import {SET_ACTIVE_PROJECT} from "../actions/uistate";
-import {DELETE_PROJECT} from "../actions/projects";
+import { SET_ACTIVE_PROJECT, LOGIN, LOGOUT } from '../actions/uistate';
 
-const uistate = (state={projectId: undefined, activityId: undefined}, action) => {
+const uistate = (
+    state = { activeProjectId: null, loggedIn: false },
+    action
+) => {
     switch (action.type) {
-        case DELETE_PROJECT:
-            if (state.projectId === action.projectId) {
-                return {
-                    projectId: null
-                }
-            }
-            return state;
+        case LOGIN:
+            return {
+                ...state,
+                loggedIn: true,
+            };
+        case LOGOUT:
+            return {
+                ...state,
+                loggedIn: false,
+            };
         case SET_ACTIVE_PROJECT:
             return {
-                projectId: action.projectId,
-                activityId: null
-            }
+                ...state,
+                activeProjectId: action.projectId,
+            };
         default:
             return state;
     }
-}
+};
 
 export default uistate;

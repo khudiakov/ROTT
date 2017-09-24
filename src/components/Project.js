@@ -1,45 +1,59 @@
-import styled from 'styled-components';
-import muiThemeable from 'material-ui/styles/muiThemeable';
+// @flow
+import React from 'react';
 
-const StyledProjectItem = styled.div`
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    margin: 3px auto;
-    padding: 10px;
-    z-index: 0;
-    border-radius: 3px;
-    border: 1px solid #00BCD4;
-    cursor: pointer;
-    opacity: ${props => props.selected ? 1 : 0.6};
-    position: relative;
-    
-    background: ${props => props.active ? props.muiTheme.palette.primary1Color : 'white'};
-    color: ${props => props.active ? 'white' : props.muiTheme.palette.primary1Color};
+import Timer from './Timer';
+import Duration from './Duration';
 
-    transition: background 0.5s ease, color 0.3s ease, opacity 0.5s ease;
+import styles from '../styles';
+import ProjectStyles from '../styles/Project';
 
-    &:hover {
-        opacity: 1;
-    }
+import type { Project as ProjectType } from '../types/Project';
 
-    > h2 {
-        flex: 1;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
+type Props = {
+    project: ProjectType,
+    selected: boolean,
+    startActivity: () => void,
+    stopActivity: () => void,
+    openProject: () => void,
+    deleteProject: () => void,
+};
 
-    h2, h3 {
-        margin: 0;
-    }
+const Project = ({
+    project,
+    selected,
+    startActivity,
+    stopActivity,
+    openProject,
+    deleteProject,
+}: Props) => {
+    const active = project.activeActivityStart !== null;
 
-    .material-icons {
-        color: ${props => props.active ? 'white' : props.muiTheme.palette.primary1Color} !important;
-    }
-    .icon__button {
-        z-index: 1;
-    }
-`;
+    const durationElement = active ? (
+        <Timer start={project.activeActivityStart} />
+    ) : (
+        <Duration duration={project.activitiesDuration} />
+    );
 
-export default muiThemeable()(StyledProjectItem);
+    return (
+        <ProjectStyles.Wrapper
+            active={active}
+            selected={selected}
+            onClick={openProject}
+        >
+            <ProjectStyles.CloseIcon onClick={deleteProject} />
+
+            <div>
+                <ProjectStyles.Title>{project.title}</ProjectStyles.Title>
+                {durationElement}
+            </div>
+            <styles.Icon
+                onClick={active ? stopActivity : startActivity}
+                clickable
+            >
+                {active ? 'stop' : 'play_arrow'}
+            </styles.Icon>
+        </ProjectStyles.Wrapper>
+    );
+};
+
+export default Project;
